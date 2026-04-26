@@ -1,62 +1,17 @@
-export default function handler(req, res) {
-  return res.status(200).json({
-    ok: true,
-    message: "API VERCEL OK"
-  });
-}
-
-  function cleanTitle(title) {
-    return title
-      .replace(/\.(1080p|720p|x264|x265|bluray|webrip|french|vostfr)/gi, '')
-      .replace(/\./g, ' ')
-      .trim();
-  }
-
-  async function getTMDBData(title) {
-    const clean = cleanTitle(title);
-
-    try {
-      const search = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(clean)}`);
-      const data = await search.json();
-
-      if (data.results?.length > 0) {
-        const item = data.results[0];
-
-        let trailer = null;
-
-        if (item.media_type === 'movie') {
-          const vid = await fetch(`https://api.themoviedb.org/3/movie/${item.id}/videos?api_key=${TMDB_API_KEY}`);
-          const vids = await vid.json();
-          const yt = vids.results.find(v => v.site === 'YouTube');
-          if (yt) trailer = `https://www.youtube.com/watch?v=${yt.key}`;
-        }
-
-        return {
-          rating: item.vote_average,
-          poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
-          type: item.media_type,
-          trailer
-        };
-      }
-    } catch {}
-
-    return {};
-  }
-
+export default async function handler(req, res) {
   try {
-    const ygg = await fetch('https://yggtorrent.org/api/v2/torrents?category=2145&sort=seeders&order=desc&limit=20');
-    const data = await ygg.json();
-
-    const content = await Promise.all(
-      data.torrents.map(async t => ({
-        title: t.name,
-        seeders: t.seeders,
-        ...await getTMDBData(t.name)
-      }))
-    );
-
-    res.status(200).json(content);
-  } catch {
-    res.status(500).json({ error: 'API error' });
+    return res.status(200).json([
+      {
+        title: "API OK - Vercel working",
+        rating: 9,
+        poster: null,
+        type: "movie"
+      }
+    ]);
+  } catch (e) {
+    return res.status(500).json({
+      error: "CRASH",
+      message: e.message
+    });
   }
 }
