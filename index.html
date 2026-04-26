@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>YGG+ Streaming</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      background: #141414;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .header {
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .controls {
+      padding: 10px 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input, select {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #222;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+    }
+
+    .card img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      background: #333;
+    }
+
+    .card-content {
+      padding: 10px;
+    }
+
+    .rating {
+      color: #f5c518;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal iframe {
+      width: 80%;
+      height: 60%;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<div class="header">🎬 YGG+ Streaming</div>
+
+<div class="controls">
+  <input id="search" placeholder="Rechercher..." oninput="applyFilters()">
+
+  <select id="typeFilter" onchange="applyFilters()">
+    <option value="all">Tout</option>
+    <option value="movie">Films</option>
+    <option value="tv">Séries</option>
+  </select>
+</div>
+
+<div id="grid" class="grid"></div>
+
+<div id="modal" class="modal" onclick="closeModal()">
+  <iframe id="player" src="" frameborder="0" allowfullscreen></iframe>
+</div>
+
+<script>
+let data = [];
+let filtered = [];
+
+// 🔄 Charger les données depuis Vercel API
+async function load() {
+  try {
+    const res = await fetch('/api/content');
+    data = await res.json();
+    filtered = data;
+    render();
+  } catch (e) {
+    document.getElementById('grid').innerHTML = "Erreur de chargement 😢";
+  }
+}
+
+// 🎨 Affichage
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  filtered.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'card';
+
+    div.innerHTML = `
+      <img src="${item.poster || ''}" />
+      <div class="card-content">
+        <div>${item.title}</div>
+        <div class="rating">⭐ ${item.rating || 'N/A'}</div>
+      </div>
+    `;
+
+    div.onclick = () => openTrailer(item.trailer);
+
+    grid.appendChild(div);
+  });
+}
+
+// 🔎 Recherche + filtre
+function applyFilters() {
+  const query = document.getElementById('search').value.toLowerCase();
+  const type = document.getElementById('typeFilter').value;
+
+  filtered = data.filter(item => {
+    const matchSearch = item.title.toLowerCase().includes(query);
+    const matchType = type === 'all' || item.type === type;
+    return matchSearch && matchType;
+  });
+
+  render();
+}
+
+// ▶️ Trailer
+function openTrailer(url) {
+  if (!url) return;
+  document.getElementById('modal').style.display = 'flex';
+  document.getElementById('player').src = url;
+}
+
+// ❌ Fermer modal
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+  document.getElementById('player').src = '';
+}
+
+// 🚀 Init
+load();
+</script>
+
+</body>
+</html>
