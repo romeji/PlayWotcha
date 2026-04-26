@@ -47,3 +47,10 @@ export default async function handler(req, res) {
     ]);
   }
 }
+function cleanTitle(name) {
+  return name
+    .replace(/\./g, " ")
+    .replace(/(1080p|720p|2160p|x264|x265|H264|H265|WEBRip|BluRay|FRENCH|VOSTFR|MULTI)/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
