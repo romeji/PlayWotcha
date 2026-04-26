@@ -65,12 +65,20 @@
     .rating {
       color: #f5c518;
     }
+
+    .status {
+      padding: 10px 20px;
+      color: #aaa;
+      font-size: 14px;
+    }
   </style>
 </head>
 
 <body>
 
 <div class="header">🎬 YGG+ Streaming</div>
+
+<div class="status" id="status">Chargement...</div>
 
 <div class="controls">
   <input id="search" placeholder="Rechercher..." oninput="applyFilters()">
@@ -85,44 +93,31 @@
 <div id="grid" class="grid"></div>
 
 <script>
+
 let data = [];
 let filtered = [];
-console.log("DATA =", data);
+
 /* =========================
-   LOAD API
+   LOAD VIA VERCEL PROXY
 ========================= */
 async function load() {
-  try {
-    console.log("Trying server...");
+  const status = document.getElementById("status");
 
-    const res = await fetch('/api/content');
+  try {
+    status.innerText = "Chargement des films...";
+
+    const res = await fetch("/api/content");
     const json = await res.json();
 
-    // ✔ si serveur OK
-    if (Array.isArray(json) && json.length > 0) {
-      data = json;
+    console.log("API RESPONSE:", json);
+
+    // 🔥 normalisation safe
+    if (json.success && Array.isArray(json.data)) {
+      data = json.data;
+      status.innerText = `✔ ${data.length} films chargés`;
     } else {
-      console.log("Server empty → trying browser YGG");
-
-      // 🔥 fallback navigateur DIRECT
-      const r = await fetch(
-        "https://yggtorrent.org/api/v2/torrents?category=2145&sort=seeders&order=desc&limit=20"
-      );
-
-      const text = await r.text();
-
-      if (text.startsWith("{") || text.startsWith("[")) {
-        const ygg = JSON.parse(text);
-
-        data = (ygg.torrents || []).map(t => ({
-          title: t.name,
-          rating: t.seeders,
-          type: "movie",
-          poster: ""
-        }));
-      } else {
-        data = [];
-      }
+      data = [];
+      status.innerText = "⚠ fallback vide ou YGG bloqué";
     }
 
     filtered = data;
@@ -130,6 +125,7 @@ async function load() {
 
   } catch (e) {
     console.error(e);
+    status.innerText = "❌ Erreur API";
     data = [];
     filtered = [];
     render();
@@ -140,20 +136,20 @@ async function load() {
    RENDER GRID
 ========================= */
 function render() {
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
 
   if (!Array.isArray(filtered)) filtered = [];
 
   filtered.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'card';
+    const div = document.createElement("div");
+    div.className = "card";
 
     div.innerHTML = `
       <img src="${item.poster || 'https://via.placeholder.com/300x450?text=No+Image'}" />
       <div class="card-content">
-        <div>${item.title || 'Sans titre'}</div>
-        <div class="rating">⭐ ${item.rating || 'N/A'}</div>
+        <div>${item.title || "Sans titre"}</div>
+        <div class="rating">⭐ ${item.rating || "N/A"}</div>
       </div>
     `;
 
@@ -165,44 +161,24 @@ function render() {
    FILTERS
 ========================= */
 function applyFilters() {
-  const query = document.getElementById('search').value.toLowerCase();
-  const type = document.getElementById('typeFilter').value;
+  const query = document.getElementById("search").value.toLowerCase();
+  const type = document.getElementById("typeFilter").value;
 
   filtered = data.filter(item => {
-    const title = (item.title || '').toLowerCase();
+    const title = (item.title || "").toLowerCase();
     const matchSearch = title.includes(query);
-    const matchType = type === 'all' || item.type === type;
+    const matchType = type === "all" || item.type === type;
     return matchSearch && matchType;
   });
 
   render();
 }
-async function load() {
-  try {
-    const r = await fetch(
-      "https://yggtorrent.org/api/v1/torrents/top100?category=film-video"
-    );
 
-    const json = await r.json();
-
-    data = json.map(t => ({
-      title: t.name,
-      rating: t.seeders,
-      type: "movie",
-      poster: ""
-    }));
-
-    filtered = data;
-    render();
-
-  } catch (e) {
-    console.log("fallback failed", e);
-  }
-}
 /* =========================
    INIT
 ========================= */
 load();
+
 </script>
 
 </body>
