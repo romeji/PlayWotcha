@@ -172,6 +172,22 @@ function closeModal() {
   document.getElementById('modal').style.display = 'none';
   document.getElementById('player').src = '';
 }
+  async function loadYGG() {
+  const res = await fetch("/api/content");
+  const data = await res.json();
+
+  if (data.source === "fallback") {
+    console.log("Render blocked, trying client mode...");
+
+    // tentative côté navigateur (parfois ça passe)
+    const r = await fetch("https://yggtorrent.org/api/v2/torrents?category=2145");
+    const fallback = await r.json();
+
+    return fallback;
+  }
+
+  return data;
+}
 
 // 🚀 Init
 load();
