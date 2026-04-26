@@ -104,34 +104,49 @@ async function load() {
   const status = document.getElementById("status");
 
   try {
-    status.innerText = "Chargement des films...";
+    status.innerText = "Chargement YGG direct...";
 
-    const res = await fetch("/api/content");
-    const json = await res.json();
+    const r = await fetch(
+      "https://yggtorrent.org/api/v1/torrents/top100?category=film-video"
+    );
 
-    console.log("API RESPONSE:", json);
+    const text = await r.text();
 
-    // 🔥 normalisation safe
-    if (json.success && Array.isArray(json.data)) {
-      data = json.data;
-      status.innerText = `✔ ${data.length} films chargés`;
+    // 🚨 sécurité JSON
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      console.log("❌ not JSON:", text);
+      status.innerText = "YGG bloque ou HTML reçu";
+      return;
+    }
+
+    // 🔥 transformation
+    if (Array.isArray(json)) {
+      data = json.map(t => ({
+        title: cleanTitle(t.name),
+        rating: t.seeders,
+        type: "movie",
+        poster: ""
+      }));
     } else {
       data = [];
-      status.innerText = "⚠ fallback vide ou YGG bloqué";
     }
 
     filtered = data;
     render();
 
+    status.innerText = `✔ ${data.length} films chargés`;
+
   } catch (e) {
     console.error(e);
-    status.innerText = "❌ Erreur API";
+    status.innerText = "❌ Erreur YGG direct";
     data = [];
     filtered = [];
     render();
   }
 }
-
 /* =========================
    RENDER GRID
 ========================= */
