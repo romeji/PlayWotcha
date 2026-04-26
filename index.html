@@ -177,7 +177,28 @@ function applyFilters() {
 
   render();
 }
+async function load() {
+  try {
+    const r = await fetch(
+      "https://yggtorrent.org/api/v1/torrents/top100?category=film-video"
+    );
 
+    const json = await r.json();
+
+    data = json.map(t => ({
+      title: t.name,
+      rating: t.seeders,
+      type: "movie",
+      poster: ""
+    }));
+
+    filtered = data;
+    render();
+
+  } catch (e) {
+    console.log("fallback failed", e);
+  }
+}
 /* =========================
    INIT
 ========================= */
