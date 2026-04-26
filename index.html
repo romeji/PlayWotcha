@@ -93,20 +93,46 @@ console.log("DATA =", data);
 ========================= */
 async function load() {
   try {
+    console.log("Trying server...");
+
     const res = await fetch('/api/content');
     const json = await res.json();
 
-    console.log("API RAW:", json);
+    // ✔ si serveur OK
+    if (Array.isArray(json) && json.length > 0) {
+      data = json;
+    } else {
+      console.log("Server empty → trying browser YGG");
 
-    // support array OU object fallback
-    data = Array.isArray(json) ? json : (json.data || []);
+      // 🔥 fallback navigateur DIRECT
+      const r = await fetch(
+        "https://yggtorrent.org/api/v2/torrents?category=2145&sort=seeders&order=desc&limit=20"
+      );
+
+      const text = await r.text();
+
+      if (text.startsWith("{") || text.startsWith("[")) {
+        const ygg = JSON.parse(text);
+
+        data = (ygg.torrents || []).map(t => ({
+          title: t.name,
+          rating: t.seeders,
+          type: "movie",
+          poster: ""
+        }));
+      } else {
+        data = [];
+      }
+    }
 
     filtered = data;
     render();
 
   } catch (e) {
-    document.getElementById('grid').innerHTML =
-      "Erreur de chargement 😢";
+    console.error(e);
+    data = [];
+    filtered = [];
+    render();
   }
 }
 
