@@ -1,5 +1,8 @@
 export default async function handler(req, res) {
-  const TMDB_API_KEY = process.env.TMDB_API_KEY;
+  res.status(200).json({
+    tmdb_key_exists: !!process.env.TMDB_API_KEY
+  });
+}
 
   function cleanTitle(title) {
     return title
