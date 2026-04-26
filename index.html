@@ -150,7 +150,7 @@ function render() {
     div.className = 'card';
 
     div.innerHTML = `
-      <img src="${item.poster || ''}" />
+      <img src="${item.poster || 'https://via.placeholder.com/300x450?text=No+Image'}" />
       <div class="card-content">
         <div>${item.title || 'Sans titre'}</div>
         <div class="rating">⭐ ${item.rating || 'N/A'}</div>
