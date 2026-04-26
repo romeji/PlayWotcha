@@ -24,3 +24,24 @@ export default async function handler(req, res) {
     res.status(500).json({ error: e.message });
   }
 }
+
+if (fallback) {
+  return res.json({
+    source: "fallback",
+    items: [
+      {
+        title: "Film test 1",
+        rating: 8.2,
+        type: "movie",
+        poster: "https://via.placeholder.com/300x450"
+      },
+      {
+        title: "Film test 2",
+        rating: 7.5,
+        type: "movie",
+        poster: "https://via.placeholder.com/300x450"
+      }
+    ],
+    message: "YGG blocked - fallback demo data"
+  });
+}
