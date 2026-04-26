@@ -1,6 +1,7 @@
-export default async function handler(req, res) {
-  res.status(200).json({
-    tmdb_key_exists: !!process.env.TMDB_API_KEY
+export default function handler(req, res) {
+  return res.status(200).json({
+    ok: true,
+    message: "API VERCEL OK"
   });
 }
 
