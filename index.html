@@ -189,6 +189,33 @@ function closeModal() {
   return data;
 }
 
+async function loadMovies() {
+  let res = await fetch("/api/content");
+  let data = await res.json();
+
+  if (data.fallback) {
+    console.log("Backend blocked, switching to browser mode...");
+
+    try {
+      const r = await fetch(
+        "https://yggtorrent.org/api/v2/torrents?category=2145&sort=seeders&order=desc&limit=10"
+      );
+
+      const text = await r.text();
+
+      if (text.startsWith("{") || text.startsWith("[")) {
+        return JSON.parse(text);
+      }
+    } catch (e) {
+      console.log("Browser fallback failed");
+    }
+
+    return [];
+  }
+
+  return data;
+}
+
 // 🚀 Init
 load();
 </script>
