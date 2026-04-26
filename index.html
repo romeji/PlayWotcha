@@ -161,15 +161,35 @@ function render() {
    FILTERS
 ========================= */
 function applyFilters() {
-  const query = document.getElementById("search").value.toLowerCase();
-  const type = document.getElementById("typeFilter").value;
+  const searchInput = document.getElementById("search");
+  const typeSelect = document.getElementById("typeFilter");
+
+  const query = (searchInput?.value || "").toLowerCase().trim();
+  const type = typeSelect?.value || "all";
+
+  // 🧠 sécurité : data doit être un tableau
+  if (!Array.isArray(data)) {
+    console.log("❌ data invalide :", data);
+    filtered = [];
+    render();
+    return;
+  }
 
   filtered = data.filter(item => {
+    if (!item) return false;
+
     const title = (item.title || "").toLowerCase();
-    const matchSearch = title.includes(query);
+
+    // 🔎 match recherche
+    const matchSearch = query === "" || title.includes(query);
+
+    // 🎯 match type
     const matchType = type === "all" || item.type === type;
+
     return matchSearch && matchType;
   });
+
+  console.log("🔎 FILTER RESULT:", filtered.length);
 
   render();
 }
